@@ -18,6 +18,9 @@
 - 사이드 프로젝트에서 구현한 인증 프로세스입니다.
 - 소셜 로그인은 구현이 생략되어 있지만 `Authorization Code Flow`가 아닌, `Implicit Flow`로 구현해 클라이언트가 웹인지, 앱인지에 상관없이 동일한 코드가 실행되며, 회원가입 프로세스 중에 있을 수 있는 UX의 불편함을 없앴습니다.
 
+![image](https://github.com/user-attachments/assets/c8efe22b-d1a0-44f3-af6b-2f06b3ef2ebb)
+
+
 ---
 
 ### 💡 추가질문 - 실제로 구현해본 경험이 있다면, 해당 구현 경험을 서술해주세요
