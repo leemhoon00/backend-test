@@ -1,0 +1,49 @@
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  name      String
+  email     String
+  password  String
+  createdAt DateTime @default(now()) @map(name: "created_at")
+
+  posts Post[]
+
+  @@map(name: "user")
+}
+
+model Post {
+  id        Int      @id @default(autoincrement())
+  title     String
+  content   String
+  createdAt DateTime @default(now()) @map(name: "created_at")
+  userId    Int?     @map(name: "user_id")
+
+  user User?     @relation(fields: [userId], references: [id], onDelete: SetNull)
+  tags PostTag[]
+
+  @@map(name: "post")
+}
+
+model Tag {
+  name      String   @id
+  createdAt DateTime @default(now()) @map(name: "created_at")
+
+  posts PostTag[]
+
+  @@map(name: "tag")
+}
+
+model PostTag {
+  postId  Int
+  tagName String
+
+  post Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+  tag  Tag  @relation(fields: [tagName], references: [name], onDelete: Cascade)
+
+  @@id([tagName, postId])
+  @@map(name: "post_tag")
+}
