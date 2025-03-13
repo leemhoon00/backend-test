@@ -2,9 +2,13 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
 import * as request from 'supertest';
 import { AppModule } from 'src/app.module';
+import { getRepositoryToken } from '@nestjs/typeorm';
+import { UserEntity } from 'src/entity/user.entity';
+import { Repository } from 'typeorm';
 
 describe('POST /users - 유저 생성', () => {
   let app: INestApplication;
+  let userRepo: Repository<UserEntity>;
 
   beforeAll(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -12,12 +16,19 @@ describe('POST /users - 유저 생성', () => {
     }).compile();
 
     app = module.createNestApplication();
+    userRepo = module.get<Repository<UserEntity>>(
+      getRepositoryToken(UserEntity),
+    );
 
     await app.init();
   });
 
   afterAll(async () => {
     await app.close();
+  });
+
+  afterEach(async () => {
+    await userRepo.clear();
   });
 
   it('name이 2~50자가 아니면 400을 반환한다', async () => {
@@ -78,6 +89,53 @@ describe('POST /users - 유저 생성', () => {
     // then
     expect(response1.status).toBe(400);
     expect(response2.status).toBe(400);
-    console.log(response2.body);
+  });
+
+  it('201과 함께 생성된 UserData를 반환한다', async () => {
+    // given
+    const name = 'John Doe';
+    const email = 'john@example.com';
+    const password = 'securePassword123';
+
+    // when
+    const { status, body } = await request(app.getHttpServer())
+      .post('/users')
+      .send({
+        name,
+        email,
+        password,
+      });
+
+    // then
+    expect(status).toBe(201);
+    expect(body).toEqual({
+      id: expect.any(Number),
+      name,
+      email,
+      createdAt: expect.any(String),
+    });
+  });
+
+  it('email이 중복이면 409를 반환한다', async () => {
+    // given
+    const name = 'John Doe';
+    const email = 'john@example.com';
+    const password = 'securePassword123';
+
+    await request(app.getHttpServer()).post('/users').send({
+      name,
+      email,
+      password,
+    });
+
+    // when
+    const { status } = await request(app.getHttpServer()).post('/users').send({
+      name,
+      email,
+      password,
+    });
+
+    // then
+    expect(status).toBe(409);
   });
 });
